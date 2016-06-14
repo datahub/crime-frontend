@@ -1,0 +1,1053 @@
+<html>
+    <head>
+        <title>Homicide tracker test</title>
+
+        <link href='http://fonts.googleapis.com/css?family=Playfair+Display:400,700,900,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href="http://media.dhb.io/dev/homicides/homicides.css" media="screen" rel="stylesheet" type="text/css" />
+
+        <script type="text/javascript" src="http://www.jsonline.com/includes/jquery.js"> </script>
+
+        <script src="http://media1.dhb.io/javascripts/backbone/1.1.2/underscore.min.js" type="text/javascript"> </script>
+        <script src="http://media1.dhb.io/javascripts/backbone/1.1.2/backbone.min.js" type="text/javascript"> </script>
+        <script src="http://media1.dhb.io/javascripts/templating/ich.min.js" type="text/javascript"> </script>
+
+        <script src="http://media1.dhb.io/javascripts/helpers/datahub.helpers.js" type="text/javascript"> </script>
+
+<link href="http://graphics.jsonline.com/jsi_news/webfonts/symbolset-symbolicons-block/ss-symbolicons-block.css" rel="stylesheet" type="text/css" />
+
+<script src="http://media2.dhb.io/javascripts/d3/v3.5.6/d3.min.js"> </script>
+<script src="http://media1.dhb.io/javascripts/d3-tip/v0.6.3/d3.tip.js" type="text/javascript"> </script>
+
+<style type="text/css">
+    .chart-pie {
+        /*border: 1px solid #791714;*/
+        /*overflow: hidden;*/
+        margin: -6px auto 0;
+        overflow: visible;
+        width: 80%;
+    }
+    .chart-pie svg {
+        overflow: visible;
+        padding: 15%;
+        width: 70%;
+    }
+
+.chart-pie .display-value,
+.chart-pie .value {
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-shadow: none;
+    text-transform: uppercase;
+}
+.chart-pie .value {
+    fill: #888888;
+    font-weight: normal;
+}
+</style>
+
+        <style type="text/css">
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            #wrap {
+                border-left: 1px solid #555555;
+                border-right: 1px solid #555555;
+                margin: 0 auto;
+                min-width: 800px;
+                padding: 0;
+                width: 80%;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="wrap">
+            <div id="homicide-tracker"></div>
+        </div>
+
+        <script id="HomicideTrackerTPL" type="text/html">
+            <div class="chatter-holder horizontal-component">
+                {{{ ChatterHolderHTML }}}
+            </div>
+            <form class="homicide-queries">
+                <div class="count-holder horizontal-component">
+                    {{{ CountHolderHTML }}}
+                </div>
+                <div class="filter-holder horizontal-component">
+                    {{{ FilterHolderHTML }}}
+                    <div style="clear: both;"></div>
+                </div>
+            </form>
+            <div class="results-holder horizontal-component">{{{ ResultsHolderHTML }}}</div>
+        </script>
+
+        <script id="ChatterHolderTPL" type="text/html">
+            <h1>{{ title }}</h1>
+            <div class="main-chatter">
+                {{# chatter }}
+                <p>{{.}}</p>
+                {{/ chatter }}
+                <p class="call-to-action">{{ callToAction }}</p>
+            </div>
+            <div class="additional-links">{{{ additionalLinks }}}</div>
+            <div style="clear: both;"></div>
+        </script>
+
+        <script id="CountHolderTPL" type="text/html">
+            <div class="count-section totals-count">
+                <p><span class="count">{{ homiCounts }}</span><span class="hidden-space">&nbsp;</span><span class="count-label">{{ countLabelText }}</span></p>
+            </div>
+            <div class="count-section date-picker">
+                <h3 class="count-section-header">Filter dates</h3>
+                <select id="homicide-date-picker">
+                    {{# dateChoices }}
+                    <option value="{{ rawValue }}"{{# selected }}selected{{/ selected }}>{{ displayValue }}</option>
+                    {{/ dateChoices }}
+                </select>
+            </div>
+            <div style="clear: both;"></div>
+        </script>
+
+        <script id="FilterHolderTPL" type="text/html">
+            <div class="all-filters">
+                <div class="visible-filters">
+                    <ol class="column-1">
+                        {{# featuredFilters.column1 }}
+                        <li class="{{ filterName }}">{{{ filterContents }}}</li>
+                        {{/ featuredFilters.column1 }}
+                    </ol>
+
+                    <ol class="column-2">
+                        {{# featuredFilters.column2 }}
+                        <li class="{{ filterName }}">{{{ filterContents }}}</li>
+                        {{/ featuredFilters.column2 }}
+                    </ol>
+
+                    <ol class="column-3">
+                        {{# featuredFilters.column3 }}
+                        <li class="{{ filterName }}">{{{ filterContents }}}</li>
+                        {{/ featuredFilters.column3 }}
+                    </ol>
+
+                    <ol class="column-4">
+                        {{# featuredFilters.column4 }}
+                        <li class="{{ filterName }}">{{{ filterContents }}}</li>
+                        {{/ featuredFilters.column4 }}
+                    </ol>
+
+                    <div style="clear: both;"></div>
+                </div>
+                {{# hasExtraFilters }}
+                <div class="extra-filters">
+                    <ol>
+                        {{# remainingFilters }}
+                        <li class="{{ filterName }}">{{{ filterContents }}}</li>
+                        {{/ remainingFilters }}
+                        <div style="clear: both;"></div>
+                        <div class="second-line-extension"></div>
+                    </ol>
+                </div>
+                {{/ hasExtraFilters }}
+                <div class="button-holder">
+                    {{# hasExtraFilters }}
+                    <input class="more-options-toggle" type="submit" value="More options" />
+                    {{/ hasExtraFilters }}
+                    <input type="submit" value="Clear" />
+                    <input class="submit-query" type="submit" name="submit" value="Search..." />
+                </div>
+            </div>
+        </script>
+
+        <script id="BooleanFilterTPL" type="text/html">
+            <div id="homicide-filter-{{ name }}">
+                <h3>{{ verboseName }}<span class="clear-filter">&times;</span></h3>
+                <div class="dropdown form-element">
+                    <select id="homicide-input-{{ name }}" name="homicide-input-{{ name }}" style="display: none;">
+                        <option value{{# isUnset }} selected="selected"{{/ isUnset }}></option>
+                        <option value="yes"{{# isTrue }} selected="selected"{{/ isTrue }}>Yes</option>
+                        <option value="no"{{# isFalse }} selected="selected"{{/ isFalse }}>No</option>
+                    </select>
+                    <div class="chart-pie"></div>
+                </div>
+            </div>
+        </script>
+
+        <script id="ChoiceFilterTPL" type="text/html">
+            <div id="homicide-filter-{{ name }}">
+                <h3>{{ verboseName }}<span class="clear-filter">&times;</span></h3>
+                <div class="graph-bar">
+                {{# choices }}
+                    <input id="homicide-input-{{ name }}_{{ raw }}" name="homicide-input-{{ name }}" type="checkbox" value="{{ raw }}"{{# selected }} checked{{/ selected }}>
+                    <label for="homicide-input-{{ name }}_{{ raw }}">
+                        <span class="bar-chart" final-width="{{ percent }}%" style="transition: width {{ easingDuration }}s linear;"></span>
+                        <span class="input-text">{{ display }}</span>
+                    </label>
+                {{/ choices }}
+                </div>
+            </div>
+        </script>
+
+        <script id="ResultsHolderTPL" type="text/html">
+            <div class="holder-inner">
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+                <div class="homicide">
+                    <div class="thumbnail">
+                        <img src="https://placeholdit.imgix.net/~text?txtsize=33&txt=Victim%20photo%20here&w=300&h=300" alt="Jade L. Cosby" title="Jade L. Cosby" />
+                    </div>
+                </div>
+
+                <div style="clear: both;"></div>
+            </div>
+        </script>
+
+        <script src="http://media.dhb.io/dev/homicides/homicides.js" type="text/javascript"> </script>
+        <script src="http://media.dhb.io/dev/homicides/pie.js" type="text/javascript"> </script>
+
+        <script type="text/javascript">
+            $(document).ready(function() {
+                window.HomicideTracker = new HomicideTracker({
+                    el: $('#homicide-tracker'),
+                    components: {
+                        ChatterHolder: {
+                            title: "Milwaukee Homicide Tracker",
+                            chatter: [
+                                "The Milwaukee Journal Sentinel is seeking to track all homicides in the city of Milwaukee to memorialize the victims and to better understand the nature of deadly violence in the city. Data comes from the Milwaukee Police Department, the Milwaukee Homicide Review Commission, online court records and additional reporting, including interviews with victims&rsquo;&nbsp;families.",
+                                "This tracker is a work in progress and gets updated as regularly as possible. It is not a complete listing of all available information and should not be used as&nbsp;such.",
+                                "Anyone with information about these homicides cases can call Milwaukee police at (414) 935-7360. Callers can remain&nbsp;anonymous."
+                            ],
+                            callToAction: 'Use the filters below to search all homicides in Milwaukee since Jan. 1, 2015.',
+                            additionalLinks: '<h3>Related content</h3><p><strong>Interactive:</strong> <a href="http://data.jsonline.com/News/HomicideTracker/Default.aspx">2008&thinsp;&ndash;&thinsp;2014 homicides in Milwaukee</a></p><p><strong>Submissions:</strong> <a href="#">Help us remember homicide victims with your photos</a></p><p><strong>Resources:</strong> <a href="#">Lost a loved one? Find help here</a></p>'
+                        },
+                        CountHolder: {
+                            defaultDateChoice: "last-full-year"
+                        },
+                        FilterHolder: {
+                            featuredFilters: {
+                                "column1": ["Age"],
+                                "column2": ["HomicideAction"],
+                                "column3": ["Race", "Gender"],
+                                "column4": ["ArrestMade", "ChargesFiled"]
+                            },
+                            // featuredFilters: ["Age"],
+                            defaultValues: {
+                                // "Age": {
+                                //     choices: ["20s", "70-plus"]
+                                // },
+                                // "Race": {
+                                //     choices: ["black", "white"]
+                                // },
+                                // "UCRReportable": {
+                                //     value: false
+                                // }
+                            }
+                        },
+                        ResultsHolder: {}
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
