@@ -192,6 +192,10 @@ var HomicideTracker = Backbone.View.extend({
         this.render({
             isFirstRender: true
         });
+
+        var geojson = _.compact(_.pluck(HomicideTracker.filteredHomicides,'geojson'));
+        var formattedGeojson = {'type': "FeatureCollection", 'features': geojson};
+        createMap(formattedGeojson);
     },
 
     updateFilters: function() {
@@ -381,6 +385,8 @@ var HomicideTracker = Backbone.View.extend({
         );
 
         this.popupHolder.resizePopup();
+
+        resizeMap();
     }
 });
 
@@ -634,6 +640,7 @@ var CountHolderView = Backbone.View.extend({
         var totalHomicides, overallNumber, countLabelText, ucrMeetPluralized;
 
         var currentRangeChoice = this.parentView.componentOpts.CountHolder.selectedDateChoice;
+        var dateFullDesc = this.parentView.dateRanges.rangeConfigs[currentRangeChoice].shortDescription;
         var dateDesc = this.parentView.dateRanges.rangeConfigs[currentRangeChoice].shortDescription;
 
         totalHomicides = this.parentView.allHomicides.length;
@@ -646,6 +653,7 @@ var CountHolderView = Backbone.View.extend({
                 } else {
                     countLabelText = 'total homicides in ' + dateDesc;
                 }
+                mapLabelText = 'All homicides for ' + dateFullDesc;
             } else {
                 overallNumber = this.parentView.filteredHomicides.length;
                 if (overallNumber == 1) {
@@ -653,6 +661,7 @@ var CountHolderView = Backbone.View.extend({
                 } else {
                     countLabelText = 'matching homicides in ' + dateDesc + ' (out&nbsp;of&nbsp;' + totalHomicides + '&nbsp;total)';
                 }
+                mapLabelText = 'Filtered homicides for ' + dateFullDesc;
             }
         } else {
             overallNumber = this.parentView.filteredHomicides.length;
@@ -661,7 +670,10 @@ var CountHolderView = Backbone.View.extend({
             } else {
                 countLabelText = 'matching homicides in ' + dateDesc + ' (out&nbsp;of&nbsp;' + totalHomicides + '&nbsp;total)';
             }
+            mapLabelText = 'Filtered homicides for ' + dateFullDesc;
         }
+
+        $('.map-header').text(mapLabelText);
 
         var ucrNumber = _.filter(
             this.parentView.filteredHomicides,
@@ -1195,7 +1207,8 @@ var ResultsHolderView = Backbone.View.extend({
 
         $(this.el).html(ich.ResultsHolderTPL(
             {
-                homicideConfigs: homicideConfigs
+                homicideConfigs: homicideConfigs,
+                mapLabelText: mapLabelText
             }
         ));
 
@@ -1221,6 +1234,11 @@ var ResultsHolderView = Backbone.View.extend({
         _.each(toRemove, function(id) {
             self.$el.find(".homicide.active[data-homicide-id='" + id + "']").removeClass('active');
         });
+
+        var geojson = _.compact(_.pluck(HomicideTracker.filteredHomicides,'geojson'));
+        var formattedGeojson = {'type': "FeatureCollection", 'features': geojson};
+        plotHomicides(formattedGeojson);
+
     }
 });
 
@@ -1231,13 +1249,13 @@ var HomicideRouter = Backbone.Router.extend({
         ':dateRange/homicide/:id' : 'showHomicide'
     },
     showHomicide: function(dateRange, homicideID) {
-        
+
         if (HomicideTracker.componentOpts.CountHolder.selectedDateChoice === dateRange) {
-            
+
             vent.trigger('homicide:show', parseInt(homicideID,10));
-        
+
         } else if (HomicideTracker.dateRanges.rangeConfigs[dateRange]) {
-            
+
             $('#homicide-date-picker').val(dateRange).change();
             HomicideTracker.componentOpts.CountHolder.selectedDateChoice = dateRange;
             HomicideTracker.updateDates(HomicideTracker, function() {
@@ -1435,4 +1453,59 @@ function calculateFractionalYearDifference(startDate, endDate) {
 function isLeapYear(year) {
     var isLeap = new Date(year, 1, 29).getMonth() == 1;
     return isLeap;
+}
+/* leaflet map */
+var map = [];
+var currentPts = {};
+function renderPopup(feature) {
+    var homicideTrackerLink = HomicideTracker.componentOpts.CountHolder.selectedDateChoice + '\/homicide\/' + feature.properties['id'];
+    var HTML = '<div class="popup-inner">' +
+               '<h4>' + feature.properties['victim'] + '</h4>' +
+               '   <div>' + feature.properties['crimeSceneAddress'] + '</div>' +
+               '   <div>' + feature.properties['crimeDate'] + '</div>' +
+               '   <div><a href="#' + homicideTrackerLink + '" onclick="Backbone.history.navigate(\''+homicideTrackerLink+'\',{trigger: true});">More information</a></div>' +
+               '</div>';
+    return HTML;
+}
+function createMap(initialData) {
+    map = L.map('homicide-map', {
+        boxZoom: false,
+        scrollWheelZoom: false
+    });
+    baseTiles = L.tileLayer(
+        'http://{s}.tiles.mapbox.com/v3/' +
+        'milwaukeejournalsentinel.map-fy8dzs4n/' +
+        '{z}/{x}/{y}.png',
+        {
+            subdomains: 'abcd',
+            maxZoom: 18
+        }
+    );
+    map.zoomControl.setPosition('topright');
+    map.addLayer(baseTiles);
+    map.attributionControl.setPrefix('Powered by <a ' +
+        'href="http://leaflet.cloudmade.com/">open</a> <a ' +
+        'href="http://mapbox.com/about/maps">tools</a><span ' +
+        'style="font-size:6px;"> </span><span class="amp">&' +
+        '</span> <a href="http://openstreetmap.org/">information' +
+        '</a>.');
+    map.setView([43.0800, -87.9600], 11);
+    plotHomicides(initialData);
+}
+function plotHomicides(data) {
+    if (map.hasLayer(currentPts)) {
+        map.removeLayer(currentPts);
+    }
+    currentPts = L.geoJson(data, {
+        onEachFeature: function(feature, layer) {
+            var popupHTML = renderPopup(feature);
+            layer.bindPopup(popupHTML);
+        }
+    });
+    currentPts.addTo(map);
+    resizeMap();
+}
+function resizeMap() {
+    var total = ((5 * ($('.homicide').outerHeight() * 1.018)) - 19);
+    $('#homicide-map').height(total);
 }
