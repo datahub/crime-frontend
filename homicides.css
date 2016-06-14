@@ -1,3 +1,10 @@
+.left_column_wide {
+    padding: 10px 0 !important;
+}
+#homicide-tracker {
+    overflow: hidden;
+    position: relative;
+}
 #homicide-tracker .horizontal-component {
     padding: 10px;
 }
@@ -13,7 +20,6 @@
     text-align: left;
     text-transform: uppercase;
 }
-
 #homicide-tracker .chatter-holder {
     padding-bottom: 15px;
     padding-top: 0;
@@ -27,12 +33,20 @@
     line-height: 48px;
     margin: 0 0 27px;
     padding: 0 3px 3px;
-
+}
+#homicide-tracker .chatter-holder .last-updated {
+    float: right;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 71px;
+    font-family: Verdana, Arial, sans-serif;
+    color: #888;
 }
 #homicide-tracker .chatter-holder .main-chatter {
     float: left;
     margin: -21px 1% 0 0;
-    width: 64%;
+    width: 56%;
 }
 #homicide-tracker .chatter-holder .main-chatter p {
     color: #555555;
@@ -50,20 +64,21 @@
     background: #F1F1F1;
     float: left;
     font-family: Verdana, Arial, sans-serif;
-    margin: 0 1.25%;
+    margin: -20px 1.25% 0 1.25%;
     padding: 0 1.25%;
-    width: 30%;
+    width: 38%;
+    position: relative;
 }
 #homicide-tracker .chatter-holder .additional-links h3 {
     border-bottom-width: 2px;
-    margin-bottom: 19px;
     margin-top: 15px;
+    margin-bottom: 10px;
 }
 #homicide-tracker .chatter-holder .additional-links p {
     color: #555555;
     font-size: 11px !important;
     line-height: 21px !important;
-    margin-bottom: 17px !important;
+    margin: 10px 0 !important;
     padding-left: 6px;
 }
 #homicide-tracker .chatter-holder .additional-links p strong {
@@ -71,32 +86,102 @@
     letter-spacing: 1px;
     text-transform: uppercase;
 }
-#homicide-tracker .chatter-holder .additional-links p a {
+#homicide-tracker .chatter-holder .additional-links p a,
+#homicide-tracker .chatter-holder .additional-links .submissions-link,
+#homicide-tracker .chatter-holder .additional-links .resources-link {
     color: #0A3E80;
     text-decoration: none;
 }
-#homicide-tracker .chatter-holder .additional-links p a:hover {
+#homicide-tracker .chatter-holder .additional-links p a:hover,
+#homicide-tracker .chatter-holder .additional-links .submissions-link:hover,
+#homicide-tracker .chatter-holder .additional-links .resources-link:hover {
     text-decoration: underline;
+    cursor: pointer;
 }
-
+#homicide-tracker .chatter-holder .additional-links .submissions-collapsed,
+#homicide-tracker .chatter-holder .additional-links .resources-collapsed {
+    background: #FFFFFF;
+    border: 1px solid #AAAAAA;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px #000000;
+    box-sizing: border-box;
+    display: none;
+    padding: 10px;
+    position: absolute;
+    z-index: 444;
+    left: 4%;
+    width: 92%;
+    top:;
+}
+#homicide-tracker .chatter-holder .additional-links .submissions-collapsed .popup-header,
+#homicide-tracker .chatter-holder .additional-links .resources-collapsed .popup-header {
+    border-bottom: 1px dotted #555555;
+    color: #444444;
+    font-family: Georgia, "Times", serif;
+    font-size: 18px;
+    font-style: normal;
+    line-height: 18px;
+    margin: 0 -3px 10px;
+    padding: 0 4px 4px;
+}
+#homicide-tracker .chatter-holder .additional-links .submissions-collapsed .close-trigger,
+#homicide-tracker .chatter-holder .additional-links .resources-collapsed .close-trigger {
+    color: #BBBBBB;
+    cursor: pointer;
+    font-family: Georgia, "Times", serif;
+    font-size: 22px;
+    font-style: normal;
+    font-weight: bold;
+    line-height: 22px;
+    position: absolute;
+    right: 12px;
+    text-align: right;
+    top: 6px;
+}
+#homicide-tracker .chatter-holder .additional-links .submission-collapsed p {
+    color: #555555;
+    font-family: Georgia, "Times", serif;
+    font-size: 13px;
+    font-style: normal;
+    line-height: 21px;
+    margin: 21px 3px 0;
+}
+#homicide-tracker .chatter-holder .additional-links .resources-collapsed ul {
+    color: #555555;
+    font-family: Georgia, "Times", serif;
+    font-size: 13px;
+    line-height: 21px;
+    list-style: disc outside none;
+    margin: 0 0 0 20px;
+    padding: 0;
+}
+#homicide-tracker .chatter-holder .additional-links .resources-collapsed ul li {
+    padding: 0;
+    background: transparent;
+}
+#homicide-tracker .content-holder {
+    position: relative;
+}
 #homicide-tracker .homicide-queries {
     margin: 0;
 }
-
 #homicide-tracker .count-holder {
-    padding: 10px 5px;
+    padding: 10px 5px 0;
 }
 #homicide-tracker .count-holder .count-section {
-    border-left: 1px dotted #CCCCCC;
     box-sizing: border-box;
     float: left;
     height: 120px;
     padding: 10px 15px;
-    width: 33.33%;
+    width: 27.5%;
 }
-
+@media only screen and (max-width: 1100px){
+    #homicide-tracker .count-holder .count-section {
+        height: 150px;
+    }
+}
 #homicide-tracker .count-holder .count-section.totals-count {
-    border-left: 0;
+    border-right: 1px dotted #CCCCCC;
 }
 #homicide-tracker .count-holder .count-section.totals-count p {
     font-family: Georgia, "Times", serif;
@@ -128,9 +213,117 @@
     line-height: 22px;
     padding: 9px 0 10px;
 }
-
-#homicide-tracker .count-holder .count-section.date-picker {
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle {
+    color: #888888;
+    font-size: 14px;
+    font-style: italic;
+    line-height: 22px;
     position: relative;
+    width: 45%;
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle.active {
+    border: 1px solid #AC4136;
+    margin: 0px 5px;
+    padding: 9px 9px;
+    width: calc(45% - 10px);
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle .explainer-text {
+    margin: 0;
+    padding: 0;
+    font-family: Georgia, "Times", serif;
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle .ucr-button-holder {
+    box-sizing: border-box;
+    float: right;
+    margin-left: 12px;
+    padding-top: 10px;
+    text-align: center;
+    width: 110px;
+
+    -webkit-touch-callout: none;
+      -webkit-user-select: none;
+       -khtml-user-select: none;
+         -moz-user-select: none;
+          -ms-user-select: none;
+              user-select: none;
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle .ucr-button-holder .ucr-button {
+    background: #CCCCCC;
+    border-radius: 5px;
+    color: #666666;
+    cursor: pointer;
+    display: inline-block;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 11px;
+    font-style: normal;
+    margin-bottom: 6px;
+    padding: 4px 8px;
+    text-transform: uppercase;
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle .ucr-button-holder .ucr-button:hover {
+    background: #AC4136;
+    color: #FFFFFF;
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle .ucr-button-holder .ucr-explainer {
+    color: #0A3E80;
+    cursor: pointer;
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle .ucr-button-holder .ucr-explainer:hover {
+    text-decoration: underline;
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle .explainer-collapsed {
+    background: #FFFFFF;
+    border: 1px solid #AAAAAA;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px #000000;
+    box-sizing: border-box;
+    display: none;
+    padding: 10px;
+    position: absolute;
+    right: 0;
+    width: 70%;
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle .explainer-collapsed .popup-header {
+    border-bottom: 1px dotted #555555;
+    color: #444444;
+    font-family: Georgia, "Times", serif;
+    font-size: 18px;
+    font-style: normal;
+    line-height: 18px;
+    margin: 0 -3px 10px;
+    padding: 0 4px 4px;
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle .explainer-collapsed .close-trigger {
+    color: #BBBBBB;
+    cursor: pointer;
+    font-family: Georgia, "Times", serif;
+    font-size: 22px;
+    font-style: normal;
+    font-weight: bold;
+    line-height: 22px;
+    position: absolute;
+    right: 12px;
+    text-align: right;
+    top: 6px;
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle .explainer-collapsed .close-trigger:hover {
+    color: #666666;
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle .explainer-collapsed p {
+    color: #555555;
+    font-family: Georgia, "Times", serif;
+    font-size: 13px;
+    font-style: normal;
+    line-height: 21px;
+    margin: 21px 3px 0;
+}
+#homicide-tracker .count-holder .count-section.ucr-explainer-toggle .explainer-collapsed p:first-of-type {
+    margin-top: 0;
+}
+#homicide-tracker .count-holder .count-section.date-picker {
+    border-left: 1px dotted #CCCCCC;
+    position: relative;
+    width: 25%;
 }
 #homicide-tracker .count-holder .count-section.date-picker h3.count-section-header {
     border-bottom: 1px solid #AC4136;
@@ -238,270 +431,278 @@
          -o-transform: scale(1,1);
             transform: scale(1,1);
 }
-    #homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div {
-        background: #FFFFFF;
-        border: 1px solid #555555;
-        border-radius: 5px;
-        cursor: pointer;
-        position: absolute;
-        z-index: 2;
-    }
-    #homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div {
-        border-bottom: 1px solid #555555;
-        box-sizing: border-box;
-        font-family: Verdana, Arial, sans-serif;
-        font-size: 14px;
-        padding: 0 15px 0 10px;
-        position: relative;
-        width: 100%;
-    }
-    #homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div:first-child {
-        border-radius: 5px 5px 0 0;
-    }
-    #homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div:last-child {
-        border-bottom: 0 none;
-        border-radius: 0 0 5px 5px;
-    }
-    #homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div>* {
-        display: inline-block;
-        line-height: 36px !important;
-        vertical-align: middle;
-    }
-    #homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div>.ss-icon {
-        color: #FFFFFF;
-        font-size: 0;
-        font-weight: 400;
-        height: 15px;
-        position: absolute;
-        top: 2px;
-        left: 10px;
-    }
-    #homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div:hover>.ss-icon {
-        color: #999999;
-        font-size:14px;
-    }
-    #homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div.selected>.ss-icon {
-        color: #AC4136;
-        font-size: 14px;
-    }
-    #homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div>span:not(.ss-icon) {
-        box-sizing: border-box;
-        color: inherit;
-        letter-spacing: 2px;
-        padding-left: 24px;
-        position: relative;
-        text-transform: uppercase;
-        white-space: nowrap;
-        width: 100%;
-    }
+#homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div {
+    background: #FFFFFF;
+    border: 1px solid #555555;
+    border-radius: 5px;
+    cursor: pointer;
+    position: absolute;
+    z-index: 2;
+}
+#homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div {
+    border-bottom: 1px solid #555555;
+    box-sizing: border-box;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 14px;
+    padding: 0 15px 0 10px;
+    position: relative;
+    width: 100%;
+}
+#homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div:first-child {
+    border-radius: 5px 5px 0 0;
+}
+#homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div:last-child {
+    border-bottom: 0 none;
+    border-radius: 0 0 5px 5px;
+}
+#homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div>* {
+    display: inline-block;
+    line-height: 36px !important;
+    vertical-align: middle;
+}
+#homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div>.ss-icon {
+    color: #FFFFFF;
+    font-size: 0;
+    font-weight: 400;
+    height: 15px;
+    position: absolute;
+    top: 2px;
+    left: 10px;
+}
+#homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div:hover>.ss-icon {
+    color: #999999;
+    font-size:14px;
+}
+#homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div.selected>.ss-icon {
+    color: #AC4136;
+    font-size: 14px;
+}
+#homicide-tracker .count-holder .count-section.date-picker .dropdown-container>.dropdown-list>div>div>span:not(.ss-icon) {
+    box-sizing: border-box;
+    color: inherit;
+    letter-spacing: 2px;
+    padding-left: 24px;
+    position: relative;
+    text-transform: uppercase;
+    white-space: nowrap;
+    width: 100%;
+}
+#homicide-tracker .filter-holder {
+    background: #F8F8F8;
+    border-bottom: 1px solid #AAAAAA;
+    border-top: 1px solid #AAAAAA;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    line-height: 21px;
+    overflow: hidden;
+    padding: 0;
+    position: relative;
+    text-transform: uppercase;
+}
+#homicide-tracker .filter-holder .all-filters {
+    float: left;
+    width: 100%;
+}
+#homicide-tracker .filter-holder .visible-filters {
+    margin: 0;
+    padding: 10px;
+}
+#homicide-tracker .filter-holder ol {
+    box-sizing: content-box;
+    float: left;
+    list-style: none inside none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    width: 25%
+}
+#homicide-tracker .filter-holder ol li {
+    box-sizing: border-box;
+    padding: 10px 6% 26px;
+    position: relative;
+    width: 100%;
+    margin: 0;
+    list-style-type: none;
+}
+#homicide-tracker .filter-holder ol li.active {
+    background: #E9E9E9;
+    border: 1px solid #999999;
+    box-sizing: border-box;
+    margin: -1px calc(3% - 1px) calc(25px - 3%);
+    padding: 10px 3% 3%;
+    position: relative;
+    width: calc(94% + 2px);
+}
+#homicide-tracker .filter-holder ol li h3 .clear-filter {
+    color: #AC4136;
+    cursor: pointer;
+    display: none;
+    float: right;
+    font-size: 20px;
+    font-weight: bold;
+    position: absolute;
+    right: 1.2%;
+    top: 1.2%;
+}
+#homicide-tracker .filter-holder ol li h3 .clear-filter:hover {
+    color: #555555;
+}
+#homicide-tracker .filter-holder ol li.active h3 .clear-filter {
+    display: block;
+}
+#homicide-tracker .filter-holder ol li .filter-outer {
+    overflow: hidden;
+}
+#homicide-tracker .filter-holder ol li .form-element {
+    padding-left: 6px;
+}
+#homicide-tracker .filter-holder ol li .dropdown {
+    padding-bottom: 2px;
+    padding-top: 6px;
+}
+#homicide-tracker .filter-holder ol li .graph-bar {
+    background: #F0F0F0;
+    border: 1px solid #777777;
+    margin: 8px 3px 0 0;
+    padding: 0;
+}
+#homicide-tracker .filter-holder ol li label,
+#homicide-tracker .filter-holder ol li input,
+#homicide-tracker .filter-holder ol li select,
+#homicide-tracker .filter-holder .button-holder input {
+    cursor: pointer;
+}
+#homicide-tracker .filter-holder ol li input {
+    display: none;
+}
+#homicide-tracker .filter-holder ol li select {
+    height: 18px;
+    width: 65%;
+}
+#homicide-tracker .filter-holder ol li label {
+    display: block;
+    position: relative;
+}
+#homicide-tracker .filter-holder ol li .graph-bar label {
+    cursor: pointer;
+    height: 23px;
+    padding: 5px 0;
+    width: 100%;
+}
+#homicide-tracker .filter-holder ol li .graph-bar label:hover {
+    background: #E0E0E0;
+}
+#homicide-tracker .filter-holder ol li .graph-bar input:checked + label,
+#homicide-tracker .filter-holder ol li .graph-bar input:checked + label:hover {
+    background: #D0D0D0;
+}
+#homicide-tracker .filter-holder ol li label .bar-chart-holder {
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 61%;
+}
+#homicide-tracker .filter-holder ol li label .bar-chart {
+    background: #BBBBBB;
+    border: 1px solid #777777;
+    border-left: 0;
+    height: 23px;
+    left: 0;
+    margin: 4px 0;
+    position: absolute;
+    transition-property: width;
+    transition-timing-function: linear;
+    top: 0;
+    width: 0;
+}
+#homicide-tracker .filter-holder ol li label .bar-chart .ellens-labels {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0;
+    line-height: 23px;
+    padding-right: 3px;
+    position: absolute;
+    right: 0;
+}
+#homicide-tracker .filter-holder ol li label .bar-chart .ellens-labels.outside {
+    right: -38px;
+}
+#homicide-tracker .filter-holder ol li .graph-bar input:checked + label .bar-chart {
+    background: #AC4136;
+    border-color: #460805;
+}
+#homicide-tracker .filter-holder ol li label .input-text {
+    color: #888888;
+    position: absolute;
+    right: 5px;
+}
+#homicide-tracker .filter-holder ol li label:hover .input-text {
+    color: #6E6E6E;
+}
+#homicide-tracker .filter-holder ol li .graph-bar input:checked + label .input-text,
+#homicide-tracker .filter-holder ol li .graph-bar input:checked + label:hover .input-text {
+    color: #333333;
+}
+#homicide-tracker .filter-holder .extra-filters {
+    background-color: #F1F1F1;
+    border-top: 1px solid #D0D0D0;
+    display: none;
+    margin-right: -35%;
+    padding-right: 35%;
+    position: relative;
+    z-index: 20;
+}
+#homicide-tracker .filter-holder .extra-filters .dropdown .select {
+    display: none;
+}
+#homicide-tracker .filter-holder .extra-filters.displayed .dropdown .select {
+    display: block;
+}
 
-
-    #homicide-tracker .filter-holder {
-        background: #F8F8F8;
-        border-bottom: 1px solid #AAAAAA;
-        border-top: 1px solid #AAAAAA;
-        font-family: Verdana, Arial, sans-serif;
-        font-size: 11px;
-        letter-spacing: 2px;
-        line-height: 21px;
-        overflow: hidden;
-        padding: 0 0 51px;
-        position: relative;
-        text-transform: uppercase;
-    }
-    #homicide-tracker .filter-holder .all-filters {
-        float: left;
-        width: 100%;
-    }
-    #homicide-tracker .filter-holder .visible-filters {
-        margin: 0;
-        padding: 10px;
-    }
-    #homicide-tracker .filter-holder ol {
-        box-sizing: content-box;
-        float: left;
-        list-style: none inside none;
-        margin: 0;
-        padding: 0;
-        position: relative;
-        width: 25%
-    }
-    #homicide-tracker .filter-holder ol li {
-        box-sizing: border-box;
-        /*padding: 10px 4% 15px;*/
-        padding: 10px 6% 21px;
-        position: relative;
-        width: 100%;
-    }
-    #homicide-tracker .filter-holder ol li.active {
-        background: #E9E9E9;
-        border: 1px solid #999999;
-        box-sizing: border-box;
-        margin: -1px calc(3% - 1px) calc(20px - 3%);
-        padding: 10px 3% 3%;
-        position: relative;
-        width: calc(94% + 2px);
-    }
-    #homicide-tracker .chatter-holder .additional-links h3,
-    #homicide-tracker .filter-holder ol li h3 {
-/*        border-bottom: 1px solid #AC4136;
-        color: #222222;
-        font-size: 12px;
-        font-weight: normal;
-        letter-spacing: 3px;
-        line-height: 18px;
-        margin: 0px 0 3px -2px;
-        padding: 0 0 1px 4px;
-        text-align: left;
-        text-transform: uppercase;*/
-    }
-    #homicide-tracker .filter-holder ol li h3 .clear-filter {
-        color: #AC4136;
-        cursor: pointer;
-        display: none;
-        float: right;
-        font-size: 20px;
-        font-weight: bold;
-        position: absolute;
-        right: 1.2%;
-        top: 1.2%;
-    }
-    #homicide-tracker .filter-holder ol li h3 .clear-filter:hover {
-        color: #555555;
-    }
-    #homicide-tracker .filter-holder ol li.active h3 .clear-filter {
-        display: block;
-    }
-    #homicide-tracker .filter-holder ol li .form-element {
-        padding-left: 6px;
-    }
-    #homicide-tracker .filter-holder ol li .dropdown {
-        padding-bottom: 2px;
-        padding-top: 6px;
-    }
-    #homicide-tracker .filter-holder ol li .graph-bar {
-        background: #F0F0F0;
-        border: 1px solid #777777;
-        margin: 8px 3px 0 0;
-        padding: 0;
-    }
-    #homicide-tracker .filter-holder ol li label,
-    #homicide-tracker .filter-holder ol li input,
-    #homicide-tracker .filter-holder ol li select,
-    #homicide-tracker .filter-holder .button-holder input {
-        cursor: pointer;
-    }
-    #homicide-tracker .filter-holder ol li input {
-        display: none;
-    }
-    #homicide-tracker .filter-holder ol li select {
-        height: 18px;
-        width: 65%;
-    }
-    #homicide-tracker .filter-holder ol li label {
-        display: block;
-        position: relative;
-    }
-    #homicide-tracker .filter-holder ol li .graph-bar label {
-        cursor: pointer;
-        height: 23px;
-        padding: 5px 0;
-        width: 100%;
-    }
-    #homicide-tracker .filter-holder ol li .graph-bar label:hover {
-        background: #E0E0E0;
-    }
-    #homicide-tracker .filter-holder ol li .graph-bar input:checked + label,
-    #homicide-tracker .filter-holder ol li .graph-bar input:checked + label:hover {
-        background: #D0D0D0;
-    }
-    #homicide-tracker .filter-holder ol li label .bar-chart {
-        background: #BBBBBB;
-        border: 1px solid #777777;
-        border-left: 0;
-        height: 23px;
-        left: 0;
-        margin: 4px 0;
-        position: absolute;
-        top: 0;
-        width: 0;
-    }
-    #homicide-tracker .filter-holder ol li .graph-bar input:checked + label .bar-chart {
-        background: #AC4136;
-        border-color: #460805;
-    }
-    #homicide-tracker .filter-holder ol li label .input-text {
-        color: #888888;
-        position: absolute;
-        right: 5px;
-    }
-    #homicide-tracker .filter-holder ol li label:hover .input-text {
-        color: #6E6E6E;
-    }
-    #homicide-tracker .filter-holder ol li .graph-bar input:checked + label .input-text,
-    #homicide-tracker .filter-holder ol li .graph-bar input:checked + label:hover .input-text {
-        color: #333333;
-    }
-
-    #homicide-tracker .filter-holder .extra-filters {
-        background-color: #F1F1F1;
-        border-top: 1px solid #D0D0D0;
-        display: none;
-        margin-right: -35%;
-        padding-right: 35%;
-        position: relative;
-        z-index: 20;
-    }
-    #homicide-tracker .filter-holder .extra-filters .dropdown .select {
-        display: none;
-    }
-    #homicide-tracker .filter-holder .extra-filters.displayed .dropdown .select {
-        display: block;
-    }
-
-    #homicide-tracker .filter-holder .button-holder {
-        background: #E9E9E9;
-        border-top: 1px solid #C0C0C0;
-        bottom: 0px;
-        box-sizing: border-box;
-        left: 0;
-        padding: 10px;
-        position: absolute;
-        text-align: right;
-        width: 100%;
-        z-index: 1;
-    }
-    #homicide-tracker .filter-holder .button-holder input {
-        background: #F6F6F6;
-        border: 1px solid #999999;
-        border-radius: 8px;
-        color: #555555;
-        font-family: Verdana, Arial, sans-serif;
-        font-size: 10px;
-        letter-spacing: 2px;
-        line-height: 28px;
-        margin-left: 3px;
-        outline: none;
-        padding: 0 10px;
-        text-transform: uppercase;
-    }
-    #homicide-tracker .filter-holder .button-holder input:hover {
-        background-color: #D5D5D5;
-        color: #333333;
-    }
-    #homicide-tracker .filter-holder .button-holder input.submit-query {
-        background-color: #009930;
-        border-color: #007D27;
-        color: #FFFFFF;
-        display: none;
-    }
-    #homicide-tracker .filter-holder .button-holder input.submit-query:hover {
-        background-color: #007D27;
-        color: #FFFFFF;
-    }
-
+#homicide-tracker .filter-holder .button-holder {
+    background: #E9E9E9;
+    border-top: 1px solid #C0C0C0;
+    bottom: 0px;
+    box-sizing: border-box;
+    left: 0;
+    padding: 10px;
+    position: absolute;
+    text-align: right;
+    width: 100%;
+    z-index: 1;
+}
+#homicide-tracker .filter-holder .button-holder input {
+    background: #F6F6F6;
+    border: 1px solid #999999;
+    border-radius: 8px;
+    color: #555555;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    line-height: 28px;
+    margin-left: 3px;
+    outline: none;
+    padding: 0 10px;
+    text-transform: uppercase;
+}
+#homicide-tracker .filter-holder .button-holder input:hover {
+    background-color: #D5D5D5;
+    color: #333333;
+}
+#homicide-tracker .filter-holder .button-holder input.submit-query {
+    background-color: #009930;
+    border-color: #007D27;
+    color: #FFFFFF;
+    display: none;
+}
+#homicide-tracker .filter-holder .button-holder input.submit-query:hover {
+    background-color: #007D27;
+    color: #FFFFFF;
+}
 #homicide-tracker .results-holder {
-    padding: 15px 5px 5px;
+    padding: 7px 5px 5px;
+    min-height: 700px;
 }
 
 #homicide-tracker .results-holder .homicide {
@@ -509,41 +710,248 @@
     box-sizing: border-box;
     cursor: pointer;
     float: left;
-    margin: 1px;
-    padding: 1px;
-    width: 64px;
+    margin: 0.25%;
+    opacity: 0.25;
+    padding: 0.25%;
+    transition: opacity 0.75s ease;
+    width: 7.8333%;
 }
-    #homicide-tracker .results-holder .homicide:hover {
-        background-color: #F6F6F6;
-    }
-    #homicide-tracker .results-holder .homicide img {
-        width: 100%;
-    }
-    #homicide-tracker .results-holder .homicide .victim-name {
-        display: table;
-        font-family: "Playfair Display", Georgia, "Times", serif;
-        font-size: 16px;
-        font-weight: 700;
-        height: 56px;
-        line-height: 21px;
-        text-align: center;
-        width: 100%;
-    }
-    #homicide-tracker .results-holder .homicide .victim-name .victim-name-inner {
-        display: table-cell;
-        vertical-align: middle;
-    }
-    #homicide-tracker .results-holder .homicide .victim-second-line {
-        color: #999999;
-        font-family: Verdana, Arial, sans-serif;
-        font-size: 11px;
-        letter-spacing: 1px;
-        line-height: 21px;
-        text-transform: uppercase;
-    }
-    #homicide-tracker .results-holder .homicide .victim-second-line .pull-right {
-        float: right;
-    }
+#homicide-tracker .results-holder .homicide.active {
+    opacity: 1;
+}
+#homicide-tracker .results-holder .homicide:hover {
+    background-color: #F6F6F6;
+}
+#homicide-tracker .results-holder .homicide .thumbnail {
+    width: 100%;
+    float: none;
+    padding: 0;
+}
+#homicide-tracker .results-holder .homicide .thumbnail img {
+    width: 100%;
+}
+#homicide-tracker .results-holder .homicide .victim-name {
+    display: table;
+    font-family: "Playfair Display", Georgia, "Times", serif;
+    font-size: 16px;
+    font-weight: 700;
+    height: 56px;
+    line-height: 21px;
+    text-align: center;
+    width: 100%;
+}
+#homicide-tracker .results-holder .homicide .victim-name .victim-name-inner {
+    display: table-cell;
+    vertical-align: middle;
+}
+#homicide-tracker .results-holder .homicide .victim-second-line {
+    color: #999999;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    line-height: 21px;
+    text-transform: uppercase;
+}
+#homicide-tracker .results-holder .homicide .victim-second-line .pull-right {
+    float: right;
+}
 
+#homicide-tracker .sources .source-line {
+    color: #777777;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    margin: 10px 1% 16px;
+    text-align: right;
+    text-transform: uppercase;
+    width: 98%;
+}
 
-    #homicide-tracker .results-holder {}
+#homicide-tracker .popup-holder {
+    background: rgba(51,51,51,0.7);
+    box-sizing: border-box;
+    left: 0;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: margin .65s cubic-bezier(.23,1,.32,1),opacity .65s cubic-bezier(.23,1,.32,1);
+    width: 100%;
+    z-index: -1;
+}
+#homicide-tracker .popup-holder.shown {
+    opacity: 1;
+    pointer-events: auto;
+}
+#homicide-tracker .popup-holder .homicide-popup {
+    background: #FFFFFF;
+    border: 2px solid #999999;
+    box-shadow: 0px 0px 10px #000000;
+    box-sizing: border-box;
+    margin: -51px -101% 0 101%;
+    overflow: visible;
+    position: relative;
+    transition: margin .65s cubic-bezier(.23,1,.32,1),opacity .65s cubic-bezier(.23,1,.32,1);
+}
+#homicide-tracker .popup-holder.shown .homicide-popup {
+    margin: -51px 0 0;
+}
+#homicide-tracker .popup-holder .homicide-popup .close-bar {
+    overflow-y: auto;
+}
+#homicide-tracker .popup-holder .homicide-popup .close-bar .close-button {
+    background: #E9E9E9;
+    border-bottom: 1px solid #C0C0C0;
+    border-left: 1px solid #C0C0C0;
+    box-sizing: border-box;
+    color: #888888;
+    cursor: pointer;
+    display: inline-block;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 25px;
+    font-weight: normal;
+    height: 33px;
+    line-height: 30px;
+    padding: 0 12px 0 9px;
+    float: right;
+}
+#homicide-tracker .popup-holder .homicide-popup .close-bar .close-button:hover {
+    background: #D5D5D5;
+    border-color: #AAAAAA;
+    color: #6B6B6B;
+}
+#homicide-tracker .popup-holder .homicide-popup .close-bar .close-button .back-icon {
+    display: inline-block;
+}
+#homicide-tracker .popup-holder .homicide-popup .close-bar .close-button .words {
+    color: #555555;
+    display: inline-block;
+    font-size: 12px;
+    height: 12px;
+    letter-spacing: 3px;
+    line-height: 34px;
+    padding-right: 9px;
+    text-transform: uppercase;
+    vertical-align: top;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents {
+    padding: 10px 20px;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents h1 {
+    font-family: "Playfair Display", Georgia, "Times", serif;
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 60px;
+    margin: 0;
+    text-align: center;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents .text-leader {
+    border-bottom: 1px dotted #000000;
+    border-top: 3px double #AC4136;
+    color: #666666;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 15px;
+    letter-spacing: 3px;
+    line-height: 24px;
+    margin: 15px 0 27px;
+    padding: 2px 0 3px;
+    text-align: center;
+    text-transform: uppercase;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents img {
+    border: 1px solid #000000;
+    float: right;
+    margin: -6px 3% 0;
+    max-width: 25%;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents p {
+    font-family: Georgia, "Times", serif;
+    font-size: 15px;
+    line-height: 24px;
+    margin: 0 3% 24px 3%;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents input[type="text"] {
+    background-color: #E4E4E4;
+    border: 1px solid #BBBBBB;
+    color: #444;
+    line-height: 16px;
+    font-size: 12px;
+    border-radius: 2px;
+    width: 200px;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents .popup-switcher .type-bodies .bio p {
+    margin: 0;
+    padding: 10px;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents .popup-switcher {
+    border-color: #BBBBBB;
+    border-style: solid;
+    border-width: 0 0 1px 1px;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents .popup-switcher .info-types {
+    border-bottom: 1px solid #BBBBBB;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents .popup-switcher .info-types .type {
+    background-color: #F3F3F3;
+    border-right: 1px solid #BBBBBB;
+    border-top: 1px solid #BBBBBB;
+    cursor: pointer;
+    color: #666666;
+    float: left;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    padding: 8px 12px;
+    text-transform: uppercase;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents .popup-switcher .info-types .type.active {
+    background-color: #E4E4E4;
+    color: #000000;
+    cursor: default;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents .popup-switcher .type-bodies {
+    background-color: #E4E4E4;
+    border-right: 1px solid #BBBBBB;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents .popup-switcher .type-bodies .type-body {
+    display: none;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents .popup-switcher .type-bodies .type-body.shown {
+    display: block;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents .popup-switcher .type-bodies .type-body ul {
+    font-family: Georgia, "Times", serif;
+    font-size: 15px;
+    line-height: 27px;
+    list-style: disc inside none;
+    margin: 0;
+    padding: 10px;
+}
+#homicide-tracker .popup-holder .homicide-popup .popup-contents .popup-switcher .type-bodies .type-body ul li {
+    margin: 0;
+    padding: 0 10px;
+    background: transparent;
+}
+#homicide-tracker .popup-holder .homicide-popup .remnant-space {
+    cursor: pointer;
+    left: -2px;
+    position: absolute;
+    top: 100%;
+    width: calc(100% + 4px);
+}
+#homicide-tracker .popup-holder .homicide-popup .remnant-space:hover {
+    background-color: rgba(0,0,0,0.2);
+}
+#homicide-tracker .popup-holder .homicide-popup .remnant-space p {
+    margin: -27px 0 0 -180px;
+    color: #FFFFFF;
+    font-size: 24px;
+    font-family: "Playfair Display", Georgia, "Times", serif;
+    font-weight: 700;
+    left: 50%;
+    line-height: 36px;
+    position: absolute;
+    text-align: center;
+    top: 30px;
+    width: 360px;
+}

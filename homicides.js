@@ -1,4 +1,5 @@
 function renderFancySelectBox(selectElement) {
+
     var fancySelectContainer = $(
         '<div class="dropdown-container ' + selectElement.attr('id') + '-dropdown">'
     );
@@ -6,7 +7,7 @@ function renderFancySelectBox(selectElement) {
     fancySelectContainer.append(
         '    <div class="dropdown-display">' +
         '        <span class="variable">' + selectElement.find('option:selected').text() + '</span>' +
-        '        <span class="ss-icon ss-navigatedown"></span>' +
+        '        <span class="ss-icon ss-symbolicons-block ss-navigatedown"></span>' +
         '    </div>'
     );
 
@@ -21,7 +22,7 @@ function renderFancySelectBox(selectElement) {
 
         fancySelectOptionInner.append(
             '<div class="' + optionClasses + '" data-slug="' + option.value + '">' +
-            '    <span class="ss-icon ss-check"></span>' +
+            '    <span class="ss-icon ss-symbolicons-block ss-check"></span>' +
             '    <span>' + option.text + '</span>' +
             '</div>'
         );
@@ -55,6 +56,10 @@ function renderFancySelectBox(selectElement) {
         fancySelectContainer.find(
             ".fancy-select-option[data-slug='" + this.value + "']"
         ).addClass('selected');
+
+        HomicideTracker.componentOpts.CountHolder.selectedDateChoice = this.value;
+        HomicideTracker.updateDates(HomicideTracker);
+
     });
 }
 
@@ -71,13 +76,15 @@ var HomicideTracker = Backbone.View.extend({
 
         this.$el.html(ich.HomicideTrackerTPL({}));
 
-        this.getDateRanges(
+        self.getDateRanges(
             function(ranges) {
                 self.dateRanges = ranges;
 
+                self.lastUpdated = ranges.updated;
+
                 self.loadHomicides(
                     function(loadedData) {
-                        self.allHomicides = loadedData;
+                        self.allHomicides = loadedData.homicides;
 
                         self.filterHomicides(function() {
                             self.finishInitialize();
@@ -87,6 +94,22 @@ var HomicideTracker = Backbone.View.extend({
             }
         );
     },
+
+    updateDates: function(self, optionalCallback) {
+        self.loadHomicides(
+            function(loadedData) {
+                self.allHomicides = loadedData.homicides;
+
+                self.filterHomicides(function() {
+                    self.finishInitialize();
+                    if (typeof optionalCallback === 'function') {
+                        optionalCallback();
+                    }
+                });
+            }
+        );
+    },
+
 
     filterHomicides: function(callbackFunction) {
         var allHomicides = this.allHomicides;
@@ -130,6 +153,7 @@ var HomicideTracker = Backbone.View.extend({
     },
 
     finishInitialize: function() {
+
         this.chatterHolder = new ChatterHolderView({
             parentView: this,
             el: this.$el.find('.chatter-holder'),
@@ -159,6 +183,11 @@ var HomicideTracker = Backbone.View.extend({
             el: this.$el.find('.popup-holder'),
             componentSlug: "PopupHolder"
         });
+
+        if (!Backbone.History.started) {
+            new HomicideRouter;
+            Backbone.history.start();
+        }
 
         this.render({
             isFirstRender: true
@@ -207,7 +236,7 @@ var HomicideTracker = Backbone.View.extend({
             self = this;
 
         $.ajax({
-            url: API.baseURL + 'date-ranges/',
+            url: API.baseURL + 'date-ranges/?spaceless=true',
             jsonpCallback: API.dateRangeCallback,
             dataType: 'jsonp',
             crossDomain: true,
@@ -223,23 +252,18 @@ var HomicideTracker = Backbone.View.extend({
             currentRangeChoice = this.componentOpts.CountHolder.selectedDateChoice,
             startDate, endDate, queryURL;
 
-        if (currentRangeChoice == "custom") {
-            // TODO: Implement this.
-        } else {
-            var currentRangeConfig = dateRanges.rangeConfigs[currentRangeChoice];
+        var currentRangeConfig = dateRanges.rangeConfigs[currentRangeChoice];
 
-            startDate = currentRangeConfig.start;
-            endDate = currentRangeConfig.end;
-            queryURL = API.baseURL +
-                'list-homicides/' +
-                startDate +
-                '_' +
-                endDate +
-                '/';
-        }
-
+        startDate = currentRangeConfig.start;
+        endDate = currentRangeConfig.end;
+        queryURL = API.baseURL +
+            'list-homicides/' +
+            startDate +
+            '_' +
+            endDate +
+            '/';
         $.ajax({
-            url: queryURL,
+            url: queryURL + '?spaceless=true',
             jsonpCallback: API.queryCallback,
             dataType: 'jsonp',
             crossDomain: true,
@@ -263,17 +287,7 @@ var HomicideTracker = Backbone.View.extend({
         if (typeof opts != "undefined") {
             isFirstRender = opts.isFirstRender || false;
         }
-        // STEP ZERO (TO REMOVE).
-        //
-        // var renderedComponents = {
-        //     ChatterHolderHTML: this.chatterHolder.render().$el.html(),
-        //     CountHolderHTML: this.countHolder.render().$el.html(),
-        //     FilterHolderHTML: this.filterHolder.render().$el.html(),
-        //     ResultsHolderHTML: this.resultsHolder.render().$el.html()
-        // };
 
-        // STEP ONE.
-        //
         this.chatterHolder.render();
         this.countHolder.render();
 
@@ -282,12 +296,6 @@ var HomicideTracker = Backbone.View.extend({
         }
 
         this.resultsHolder.render();
-
-        // STEP TWO.
-        //
-        // _.each(this.components, function(c) {
-        //     component.render();
-        // });
 
         this.handleResize();
 
@@ -360,51 +368,6 @@ var HomicideTracker = Backbone.View.extend({
         );
 
         if (isFirstRender) {
-            _.each(
-                this.filterHolder.filters,
-                function(filterObj, filterName) {
-                    if (filterObj.filterType == 'nullBooleanFilter') {
-                        var filterElement = filterObj.$el.find(".chart-pie");
-
-                        filterObj.chart = drawPie({
-                            element: $(filterElement),
-                            data: filterObj.data,
-                            animate: true,
-                            animationDuration: 500,
-                            textOffset: 18,
-                            mouseOverEvent: function(slice, dataPoint, index) {
-                                var originalColor = d3.rgb(
-                                        dataPoint.data.color
-                                    ),
-                                    newColor = originalColor.darker(0.4)
-                                                    .toString().toUpperCase();
-
-                                d3.select(slice)
-                                    .attr('fill', newColor);
-                            },
-                            mouseOutEvent: function(slice, dataPoint, index) {
-                                d3.select(slice)
-                                    .attr('fill', dataPoint.data.color);
-                            },
-                            clickEvent: function(slice, dataPoint, index) {
-                                th = slice;
-                                dp = dataPoint;
-
-                                console.log("Click.");
-                            }
-                        });
-
-                        $(window).resize(function() {
-                            if (filterObj.chart != 'undefined') {
-                                filterObj.chart.initialize({
-                                    animationDuration: 0
-                                });
-                            }
-                        });
-                    }
-                }
-            );
-
             if (_.has(this.componentOpts.PopupHolder, 'defaultPopupID')) {
                 this.popupHolder.resizePopup();
             }
@@ -412,17 +375,9 @@ var HomicideTracker = Backbone.View.extend({
     },
 
     handleResize: function() {
-        _.each(
-            this.filterHolder.$el.find('.chart-pie'),
-            function(chartDiv) {
-                var chartHolder = $(chartDiv);
-
-                chartHolder.css('height', chartHolder.css('width'));
-            }
-        );
 
         this.resultsHolder.$el.find('.homicide img').height(
-            this.resultsHolder.$el.find('.homicide img').css('width')
+            this.resultsHolder.$el.find('.homicide .thumbnail').css('width')
         );
 
         this.popupHolder.resizePopup();
@@ -440,35 +395,47 @@ var PopupHolderView = Backbone.View.extend({
         if (_.has(componentOpts, 'defaultPopupID')) {
             this.openPopupForID(componentOpts.defaultPopupID);
         }
+
+        vent.on('homicide:show', this.openPopupForID, this);
+
     },
 
     openPopupForID: function(homicideID) {
-        var scrollPosition = this.$el.parent().parent()
-                                        .find('.chatter-holder').height() - 51;
+        var scrollPosition = this.$el.parent().parent().find('.chatter-holder').height() - 51;
 
         this.render({
             homicideID: homicideID
         });
 
-        $('html, body').animate(
-            {
-                scrollTop: scrollPosition
-            },
-            500
-        );
+        Backbone.history.navigate(this.parentView.componentOpts.CountHolder.selectedDateChoice + '/homicide/' + homicideID);
+
+        $('html, body').animate({scrollTop: scrollPosition}, 500);
     },
 
     closePopup: function() {
+
         this.$el.removeClass('shown');
+
+        // ie 10 fix
+        //if(window.navigator.userAgent.indexOf('MSIE ') > -1) {
+        setTimeout(function(){
+           this.$el.css('z-index', -1);
+        }.bind(this), 650);
+        //}
+
+        Backbone.history.navigate('');
+
     },
 
     render: function(opts) {
-        var popupView = this,
-            detailHomicide = _.where(
-                this.parentView.allHomicides, {
-                    id: opts.homicideID
-                }
-            )[0];
+
+        var popupView = this;
+        var detailHomicide = _.where(
+            HomicideTracker.allHomicides, {
+                id: opts.homicideID
+            }
+        )[0];
+
 
         if (typeof detailHomicide.victim.photo != 'undefined') {
             detailHomicide.victim.fullPhoto = detailHomicide.victim.photo;
@@ -511,15 +478,18 @@ var PopupHolderView = Backbone.View.extend({
 
         if (detailHomicide.wasArrestMade === true) {
             detailHomicide.verboseArrestMade = 'Yes';
-        } else if (detailHomicide.wasArrestMade === false) {
+        } else if (detailHomicide.wasArrestMade === false || detailHomicide.wasArrestMade === null) {
             detailHomicide.verboseArrestMade = 'No';
         }
 
         if (detailHomicide.wereChargesFiled === true) {
             detailHomicide.verboseChargesFiled = 'Yes';
-        } else if (detailHomicide.wereChargesFiled === false) {
+        } else if (detailHomicide.wereChargesFiled === false || detailHomicide.wereChargesFiled === null) {
             detailHomicide.verboseChargesFiled = 'No';
         }
+
+        detailHomicide.homicideLink = window.location.protocol + '//'+ window.location.hostname + window.location.pathname + '#' +
+                                        this.parentView.componentOpts.CountHolder.selectedDateChoice + '/homicide/' + opts.homicideID;
 
         this.$el.css('height', this.$el.parent().height() + 16);
 
@@ -540,7 +510,14 @@ var PopupHolderView = Backbone.View.extend({
                     thisTrigger.addClass('active');
 
                     popupView.$el.find('.popup-switcher .type-body.shown').removeClass('shown');
+                    setTimeout(function(){
+                        popupView.$el.find('.popup-switcher .type-body.shown').css('z-index', -1);
+                    }, 650);
 
+
+                    popupView.$el.find(
+                        '.popup-switcher .type-body.' + thisTrigger.data('type-slug')
+                    ).css('z-index', 333);
                     popupView.$el.find(
                         '.popup-switcher .type-body.' + thisTrigger.data('type-slug')
                     ).addClass('shown');
@@ -570,6 +547,7 @@ var PopupHolderView = Backbone.View.extend({
             }
         );
 
+        popupView.$el.css('z-index', 333);
         popupView.$el.addClass('shown');
     },
 
@@ -604,6 +582,7 @@ var ChatterHolderView = Backbone.View.extend({
 
     render: function(opts) {
         var configData;
+        var chatterView = this;
 
         if (typeof opts != "undefined") {
             configData = opts;
@@ -611,7 +590,29 @@ var ChatterHolderView = Backbone.View.extend({
             configData = this.parentView.componentOpts[this.componentSlug];
         }
 
+        configData['lastUpdated'] = this.parentView.lastUpdated;
+
         $(this.el).html(ich.ChatterHolderTPL(configData));
+
+        this.$el.find('.submissions-link').unbind().click(function() {
+            chatterView.$el.find('.submissions-collapsed').fadeIn();
+
+            chatterView.$el.find('.submissions-collapsed .close-trigger').unbind().click(
+                function() {
+                    chatterView.$el.find('.submissions-collapsed').fadeOut();
+                }
+            );
+        });
+
+        this.$el.find('.resources-link').unbind().click(function() {
+            chatterView.$el.find('.resources-collapsed').fadeIn();
+
+            chatterView.$el.find('.resources-collapsed .close-trigger').unbind().click(
+                function() {
+                    chatterView.$el.find('.resources-collapsed').fadeOut();
+                }
+            );
+        });
 
         return this;
     },
@@ -630,35 +631,35 @@ var CountHolderView = Backbone.View.extend({
     },
 
     formatHomicideCounts: function() {
-        // Generate 'countLabelText' based on whether it's the full dataset or
-        // a filtered subset, being sure to properly pluralize the output.
         var totalHomicides, overallNumber, countLabelText, ucrMeetPluralized;
+
+        var currentRangeChoice = this.parentView.componentOpts.CountHolder.selectedDateChoice;
+        var dateDesc = this.parentView.dateRanges.rangeConfigs[currentRangeChoice].shortDescription;
 
         totalHomicides = this.parentView.allHomicides.length;
 
-        // TODO: Make 'in 2015' programmatic.
         if (_.keys(this.parentView.currentValues).length === 0) {
             if (this.parentView.componentOpts.CountHolder.ucrMode == 'all') {
                 overallNumber = totalHomicides;
                 if (overallNumber == 1) {
-                    countLabelText = 'total homicides in 2015';
+                    countLabelText = 'total homicides in ' + dateDesc;
                 } else {
-                    countLabelText = 'total homicides in 2015';
+                    countLabelText = 'total homicides in ' + dateDesc;
                 }
             } else {
                 overallNumber = this.parentView.filteredHomicides.length;
                 if (overallNumber == 1) {
-                    countLabelText = 'matching homicide in 2015 (out&nbsp;of&nbsp;' + totalHomicides + '&nbsp;total)';
+                    countLabelText = 'matching homicide in ' + dateDesc + ' (out&nbsp;of&nbsp;' + totalHomicides + '&nbsp;total)';
                 } else {
-                    countLabelText = 'matching homicides in 2015 (out&nbsp;of&nbsp;' + totalHomicides + '&nbsp;total)';
+                    countLabelText = 'matching homicides in ' + dateDesc + ' (out&nbsp;of&nbsp;' + totalHomicides + '&nbsp;total)';
                 }
             }
         } else {
             overallNumber = this.parentView.filteredHomicides.length;
             if (overallNumber == 1) {
-                countLabelText = 'matching homicide in 2015 (out&nbsp;of&nbsp;' + totalHomicides + '&nbsp;total)';
+                countLabelText = 'matching homicide in ' + dateDesc + ' (out&nbsp;of&nbsp;' + totalHomicides + '&nbsp;total)';
             } else {
-                countLabelText = 'matching homicides in 2015 (out&nbsp;of&nbsp;' + totalHomicides + '&nbsp;total)';
+                countLabelText = 'matching homicides in ' + dateDesc + ' (out&nbsp;of&nbsp;' + totalHomicides + '&nbsp;total)';
             }
         }
 
@@ -709,7 +710,7 @@ var CountHolderView = Backbone.View.extend({
     },
 
     render: function(opts) {
-        // TODO: Handle changing which dates are selected.
+
         var currentDatesChoice = {},
             selectedDatesChoice = _.where(this.dateChoices, {selected: true}),
             countView = this;
@@ -798,14 +799,7 @@ var CountHolderView = Backbone.View.extend({
             selectedSlug = this.parentView.componentOpts[this.componentSlug].selectedDateChoice;
         }
 
-        var dateChoices = [
-            {
-                displayValue: "Custom dates",
-                order: _.keys(rangeConfigs).length,
-                rawValue: "custom",
-                selected: false
-            }
-        ];
+        var dateChoices = [];
 
         _.each(rangeConfigs, function(rangeConfig, rangeSlug) {
             dateChoices.push({
@@ -818,8 +812,6 @@ var CountHolderView = Backbone.View.extend({
 
         dateChoices = _.sortBy(dateChoices, 'order');
 
-        // Find the 'dateChoices' object whose slug matches 'selectedSlug'.
-        // Set its 'selected' value to 'true'.
         var selectedChoice = _.where(dateChoices, {rawValue: selectedSlug});
         if (selectedChoice.length > 0) {
             selectedChoice[0].selected = true;
@@ -1076,67 +1068,62 @@ var FilterView = Backbone.View.extend({
             //
         } else {
             var existingData = this.generateData(),
-                defaults = this.parentView.generateFilterDefaults(this),
-                choicesFormatted = _.map(
-                    _.map(
-                        this.extraContext.choices,
-                        _.clone
-                    ),
-                    function(choice) {
-                        if (_.has(existingData, choice.raw)) {
-                            _.extend(choice, existingData[choice.raw]);
-                        }
-
-                        if (_.keys(defaults).length !== 0) {
-                            if (_.contains(defaults.choices, choice.raw)) {
-                                choice.selected = true;
-                            }
-                        }
-
-                        if (_.has(choice, 'percent')) {
-                            choice.easingDuration = 0.005 * choice.percent;
-                        } else {
-                            choice.easingDuration = 0;
-                        }
-
-                        var chartItem = $(
-                            self.$el.find(
-                                'label[for="homicide-input-' +
-                                    self.filterSlug +
-                                    '_' +
-                                    choice.raw +
-                                    '"] .bar-chart'
-                            )
-                        );
-
-                        choice = _.defaults(choice, {selected: false, percent: 0});
-
-                        chartItem.attr('final-width', choice.percent + '%');
-                        chartItem.css('transition-duration', choice.easingDuration + 's');
-
-                        chartItem.find('.ellens-labels').html(Math.round(choice.percent) + '%');
-
-                        if (choice.percent < 30) {
-                            chartItem.find('.ellens-labels').addClass('outside');
-                        } else {
-                            chartItem.find('.ellens-labels').removeClass('outside');
-                        }
-
-                        return choice;
+                defaults = this.parentView.generateFilterDefaults(this);
+            var choicesFormatted = _.map(
+                _.map(
+                    this.extraContext.choices,
+                    _.clone
+                ),
+                function(choice) {
+                    if (_.has(existingData, choice.raw)) {
+                        _.extend(choice, existingData[choice.raw]);
                     }
-                );
 
-            // setTimeout(function() {
-                _.each(
-                    self.$el.find(".graph-bar label .bar-chart"),
-                    function(bar) {
-                        $(bar).css('width', $(bar).attr('final-width'));
+                    if (_.keys(defaults).length !== 0) {
+                        if (_.contains(defaults.choices, choice.raw)) {
+                            choice.selected = true;
+                        }
                     }
-                );
-            // }, 200);
 
-            // console.log(choicesFormatted);
-            // cform = choicesFormatted;
+                    if (_.has(choice, 'percent')) {
+                        choice.easingDuration = 0.005 * choice.percent;
+                    } else {
+                        choice.easingDuration = 0;
+                    }
+
+                    var chartItem = $(
+                        self.$el.find(
+                            'label[for="homicide-input-' +
+                                self.filterSlug +
+                                '_' +
+                                choice.raw +
+                                '"] .bar-chart'
+                        )
+                    );
+
+                    choice = _.defaults(choice, {selected: false, percent: 0});
+
+                    chartItem.attr('final-width', choice.percent + '%');
+                    chartItem.css('transition-duration', choice.easingDuration + 's');
+
+                    chartItem.find('.ellens-labels').html(Math.round(choice.percent) + '%');
+
+                    if (choice.percent < 30) {
+                        chartItem.find('.ellens-labels').addClass('outside');
+                    } else {
+                        chartItem.find('.ellens-labels').removeClass('outside');
+                    }
+
+                    return choice;
+                }
+            );
+
+            _.each(
+                self.$el.find(".graph-bar label .bar-chart"),
+                function(bar) {
+                    $(bar).css('width', $(bar).attr('final-width'));
+                }
+            );
         }
     }
 });
@@ -1177,8 +1164,6 @@ var ResultsHolderView = Backbone.View.extend({
 
             homicideObj.victim.ageAtDeath = calculateYearDifference(birthDate, homicideDate);
 
-            // If an object with this ID is in 'this.parentView.filteredHomicides',
-            // set 'homicideObj.extraClasses' to 'active'.
             if (
                 _.contains(
                     _.pluck(
@@ -1207,8 +1192,6 @@ var ResultsHolderView = Backbone.View.extend({
 
             homicideConfigs.push(homicideObj);
         });
-
-        // TODO: Ensure homicides are sorted by date.
 
         $(this.el).html(ich.ResultsHolderTPL(
             {
@@ -1241,6 +1224,32 @@ var ResultsHolderView = Backbone.View.extend({
     }
 });
 
+var vent = _.extend({}, Backbone.Events);
+
+var HomicideRouter = Backbone.Router.extend({
+    routes: {
+        ':dateRange/homicide/:id' : 'showHomicide'
+    },
+    showHomicide: function(dateRange, homicideID) {
+        
+        if (HomicideTracker.componentOpts.CountHolder.selectedDateChoice === dateRange) {
+            
+            vent.trigger('homicide:show', parseInt(homicideID,10));
+        
+        } else if (HomicideTracker.dateRanges.rangeConfigs[dateRange]) {
+            
+            $('#homicide-date-picker').val(dateRange).change();
+            HomicideTracker.componentOpts.CountHolder.selectedDateChoice = dateRange;
+            HomicideTracker.updateDates(HomicideTracker, function() {
+                vent.trigger('homicide:show', parseInt(homicideID,10));
+            });
+
+        } else {
+            console.log('date range invalid');
+        }
+
+    }
+});
 
 var FilterViews = {
     Age: {
@@ -1346,28 +1355,6 @@ var FilterViews = {
             {raw: 'female', display: 'Female'}
         ]
     },
-    // PrimaryFactor: {
-    //     type: 'choiceFilter',
-    //     choices: [
-    //         {raw: 'argument-fight', display: 'Argument/fight'},
-    //         {raw: 'child-abuse-neglect', display: 'Child abuse/neglect'},
-    //         {raw: 'domestic-violence', display: 'Domestic violence'},
-    //         {raw: 'robbery', display: 'Robbery'},
-    //         {raw: 'retaliation', display: 'Retaliation'},
-    //         {raw: 'drug-related', display: 'Drug related'},
-    //         {raw: 'gang-related', display: 'Gang related'},
-    //         {raw: 'drug-related-robbery', display: 'Drug-related robbery'},
-    //         {raw: 'negligent-handling', display: 'Negligent Handling'},
-    //         {raw: 'unknown', display: 'Unknown'},
-    //         {raw: 'other', display: 'Other'}
-    //     ]
-    // },
-    // SelfDefense: {
-    //     type: 'nullBooleanFilter',
-    // },
-    // UCRReportable: {
-    //     type: 'nullBooleanFilter',
-    // },
     ArrestMade: {
         type: 'choiceFilter',
         generateFilterValue: function(matchingObject) {
